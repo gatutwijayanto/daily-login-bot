@@ -1,23 +1,30 @@
 const { REST, Routes, SlashCommandBuilder } = require("discord.js");
-const config = require("./config.json");
+
+// AMBIL DARI ENV (RAILWAY)
+const TOKEN = process.env.TOKEN;
+const APPLICATION_ID = process.env.APPLICATION_ID;
 
 const commands = [
   new SlashCommandBuilder()
     .setName("hadir")
-    .setDescription("Login harian")
-    .toJSON()
-];
+    .setDescription("Login harian"),
 
-const rest = new REST({ version: "10" }).setToken(config.token);
+  new SlashCommandBuilder()
+    .setName("progress")
+    .setDescription("Cek progress login harian")
+].map(cmd => cmd.toJSON());
+
+const rest = new REST({ version: "10" }).setToken(TOKEN);
 
 (async () => {
   try {
+    console.log("⏳ Mendaftarkan slash command...");
     await rest.put(
-      Routes.applicationCommands("1465872195434577951"),
+      Routes.applicationCommands(APPLICATION_ID),
       { body: commands }
     );
-    console.log("✅ Slash command terdaftar");
-  } catch (err) {
-    console.error(err);
+    console.log("✅ Slash command /hadir & /progress berhasil didaftarkan");
+  } catch (error) {
+    console.error("❌ Gagal daftar command:", error);
   }
 })();
