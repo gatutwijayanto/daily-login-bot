@@ -12,11 +12,7 @@ if (!TOKEN || !APPLICATION_ID) {
 const commands = [
   new SlashCommandBuilder()
     .setName("hadir")
-    .setDescription("Login harian"),
-
-  new SlashCommandBuilder()
-    .setName("progress")
-    .setDescription("Cek progress login harian")
+    .setDescription("Login harian")
 ].map(cmd => cmd.toJSON());
 
 const rest = new REST({ version: "10" }).setToken(TOKEN);
@@ -28,7 +24,7 @@ const rest = new REST({ version: "10" }).setToken(TOKEN);
       Routes.applicationCommands(APPLICATION_ID),
       { body: commands }
     );
-    console.log("✅ Slash command /hadir & /progress berhasil didaftarkan");
+    console.log("✅ Slash command /hadir berhasil didaftarkan");
   } catch (error) {
     console.error("❌ Gagal daftar command:", error);
   }
