@@ -93,50 +93,92 @@ client.once("ready", () => {
 
 client.on("interactionCreate", async interaction => {
   if (!interaction.isChatInputCommand()) return;
-  if (interaction.commandName !== "hadir") return;
 
-  if (interaction.channelId !== config.loginChannelId) {
+  /* =======================
+     COMMAND /hadir
+  ======================== */
+  if (interaction.commandName === "hadir") {
+    if (interaction.channelId !== config.loginChannelId) {
+      return interaction.reply({
+        content: "❌ Gunakan command ini di channel login harian.",
+        ephemeral: true
+      });
+    }
+
+    const db = loadDB();
+    const userId = interaction.user.id;
+    const today = todayWIB();
+
+    if (!db[userId]) {
+      db[userId] = {
+        login_count: 0,
+        robux: 0,
+        last_login: null
+      };
+    }
+
+    const user = db[userId];
+
+    if (user.last_login === today) {
+      return interaction.reply({
+        content: "❌ Kamu sudah login hari ini.",
+        ephemeral: true
+      });
+    }
+
+    user.login_count += 1;
+    user.last_login = today;
+
+    let msg = `✅ **Login berhasil!**\nProgress: **${user.login_count % 4 || 4}/4**`;
+
+    if (user.login_count % 4 === 0) {
+      user.robux += 1;
+      msg += `\n🎉 Kamu mendapatkan **1 Robux**!`;
+    }
+
+    saveDB(db);
+    interaction.reply({ content: msg, ephemeral: true });
+
+    updateLeaderboard(interaction.guild);
+  }
+
+  /* =======================
+     COMMAND /progress (EMBED)
+  ======================== */
+  if (interaction.commandName === "progress") {
+    const db = loadDB();
+    const userId = interaction.user.id;
+    const today = todayWIB();
+
+    if (!db[userId]) {
+      return interaction.reply({
+        content: "❌ Kamu belum pernah login.",
+        ephemeral: true
+      });
+    }
+
+    const user = db[userId];
+    const progress = user.login_count % 4 || 4;
+    const statusHariIni = user.last_login === today ? "Sudah login" : "Belum login";
+
+    const embed = new EmbedBuilder()
+      .setTitle("📊 Progress Login Harian")
+      .setColor(0x0099ff)
+      .setThumbnail(interaction.user.displayAvatarURL())
+      .addFields(
+        { name: "📆 Total Login", value: `${user.login_count} hari`, inline: true },
+        { name: "🪙 Total Robux", value: `${user.robux}`, inline: true },
+        { name: "⏳ Progress", value: `${progress} / 4`, inline: true },
+        { name: "🕛 Hari Ini", value: statusHariIni, inline: true }
+      )
+      .setFooter({ text: "Login harian • Reward tiap 4x login" })
+      .setTimestamp();
+
     return interaction.reply({
-      content: "❌ Gunakan command ini di channel login harian.",
+      embeds: [embed],
       ephemeral: true
     });
   }
-
-  const db = loadDB();
-  const userId = interaction.user.id;
-  const today = todayWIB();
-
-  if (!db[userId]) {
-    db[userId] = {
-      login_count: 0,
-      robux: 0,
-      last_login: null
-    };
-  }
-
-  const user = db[userId];
-
-  if (user.last_login === today) {
-    return interaction.reply({
-      content: "❌ Kamu sudah login hari ini.",
-      ephemeral: true
-    });
-  }
-
-  user.login_count += 1;
-  user.last_login = today;
-
-  let msg = `✅ **Login berhasil!**\nProgress: **${user.login_count % 4 || 4}/4**`;
-
-  if (user.login_count % 4 === 0) {
-    user.robux += 1;
-    msg += `\n🎉 Kamu mendapatkan **1 Robux**!`;
-  }
-
-  saveDB(db);
-  interaction.reply({ content: msg, ephemeral: true });
-
-  updateLeaderboard(interaction.guild);
 });
 
 client.login(config.token);
