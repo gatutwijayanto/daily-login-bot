@@ -1,8 +1,13 @@
 const { REST, Routes, SlashCommandBuilder } = require("discord.js");
 
-// AMBIL DARI ENV (RAILWAY)
+// AMBIL DARI ENV
 const TOKEN = process.env.TOKEN;
 const APPLICATION_ID = process.env.APPLICATION_ID;
+
+if (!TOKEN || !APPLICATION_ID) {
+  console.error("❌ TOKEN atau APPLICATION_ID belum di-set di ENV");
+  process.exit(1);
+}
 
 const commands = [
   new SlashCommandBuilder()
